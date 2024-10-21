@@ -7,6 +7,20 @@ export const fetchData = () => {
     });
 };
 
+export const fetchWebsiteData = () => {
+    return request({
+        url: 'http://localhost:1011/query_website',
+        method: 'get'
+    });
+};
+
+export const fetchDeleteWebsite=()=> {
+    return request({
+        url: 'http://localhost:1011/delete_website',
+        method: 'get'
+    });
+}
+
 export const fetchUserData = () => {
     return request({
         url: './mock/user.json',

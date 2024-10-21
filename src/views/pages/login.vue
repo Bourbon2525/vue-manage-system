@@ -82,11 +82,18 @@ const submitForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return;
     formEl.validate((valid: boolean) => {
         if (valid) {
-            ElMessage.success('登录成功');
             localStorage.setItem('vuems_name', param.username);
             const keys = permiss.defaultList[param.username == 'admin' ? 'admin' : 'user'];
             permiss.handleSet(keys);
-            router.push('/');
+
+            const correctPassword = 'cloak-2525'; // 设定好的密码
+
+            if (param.password === correctPassword) {
+              ElMessage.success('登录成功');
+              router.push('/index-page');
+            } else {
+              ElMessage.error('密码错误');
+            }
             if (checked.value) {
                 localStorage.setItem('login-param', JSON.stringify(param));
             } else {
@@ -94,7 +101,6 @@ const submitForm = (formEl: FormInstance | undefined) => {
             }
         } else {
             ElMessage.error('登录失败');
-            return false;
         }
     });
 };
