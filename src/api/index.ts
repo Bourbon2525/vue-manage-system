@@ -14,10 +14,27 @@ export const fetchWebsiteData = () => {
     });
 };
 
-export const fetchDeleteWebsite=()=> {
+export const fetchDeleteWebsite = (id: any) => {
     return request({
-        url: 'http://localhost:1011/delete_website',
-        method: 'get'
+        url: 'http://localhost:1011/delete',
+        method: 'post',
+        data: {
+            id: id
+        }
+    });
+}
+
+export const fetchSaveWebsite = (id, important_level, is_allowed, country, count) => {
+    return request({
+        url: 'http://localhost:1011/save',
+        method: 'post',
+        data: {
+            id: id,
+            important_level: important_level,
+            is_allowed: is_allowed,
+            country: country,
+            count: count
+        }
     });
 }
 

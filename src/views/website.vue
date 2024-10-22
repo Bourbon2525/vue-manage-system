@@ -49,7 +49,7 @@
 import {ref, reactive} from 'vue';
 import {ElMessage,} from 'element-plus';
 import {CirclePlusFilled} from '@element-plus/icons-vue';
-import {fetchData, fetchDeleteWebsite, fetchWebsiteData} from '@/api/index';
+import {fetchData, fetchDeleteWebsite, fetchSaveWebsite, fetchWebsiteData} from '@/api/index';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
@@ -67,6 +67,7 @@ const searchOpt = ref<FormOptionList[]>([
 const handleSearch = () => {
   changePage(1);
 };
+const form = ref({});
 
 // 表格相关
 let columns = ref([
@@ -95,29 +96,11 @@ const changePage = (val: number) => {
   getData();
 };
 
-const uploadFile = async (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  try {
-    const response = await axios.post('/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    const { id } = response.data;
-    rowData.value.id = id;  // 更新 rowData 的 ID
-    ElMessage.success('文件上传成功');
-  } catch (error) {
-    ElMessage.error('文件上传失败');
-  }
-};
-
 // 新增/编辑弹窗相关
 const countryOptions = ref([
-  { label: 'United States', value: 'US' },
-  { label: 'China', value: 'CN' },
-  { label: 'India', value: 'IN' },
+  {label: 'United States', value: 'US'},
+  {label: 'China', value: 'CN'},
+  {label: 'India', value: 'IN'},
   // Add more countries as needed
 ]);
 let options = ref<FormOption>({
@@ -132,31 +115,41 @@ let options = ref<FormOption>({
     {type: 'number', label: '次数', prop: 'count', required: true}
   ]
 })
-const submitData = async () => {
-  try {
-    const response = await axios.post('/save', rowData.value);
-    ElMessage.success(response.data.message);
-    closeDialog();
-    getData();
-  } catch (error) {
-    ElMessage.error('添加失败');
+
+const submitData = async form => {
+  console.log("form:", form);
+  const { id, important_level, is_allowed, country, count } = form;
+
+  if (id && important_level !== undefined && is_allowed !== undefined) {
+    try {
+      console.log('提交数据:', { id, important_level, is_allowed, country, count });
+      const response = await fetchSaveWebsite(id, important_level, is_allowed, country, count);
+      ElMessage.success(response.data.message);
+      closeDialog();
+      getData();
+    } catch (error) {
+      ElMessage.error('提交失败');
+    }
+  } else {
+    ElMessage.error('数据无效');
   }
 };
 
+
 const visible = ref(false);
 const isEdit = ref(false);
-const rowData = ref<TableItem>();
+const rowData = ref<TableItem>({count: 0, country: "", important_level: 0, is_allowed: false, website_path: ""});
 const handleEdit = (row: TableItem) => {
-  rowData.value = { ...row };
+  rowData.value = {...row};
   isEdit.value = true;
   visible.value = true;
 };
 
-const updateData = () => {
+const updateData = (form) => {
   if (isEdit.value) {
     // Update existing data logic
   } else {
-    submitData();
+    submitData(form);
   }
 };
 
@@ -200,8 +193,12 @@ const handleView = (row: TableItem) => {
 
 // 删除相关
 const handleDelete = async (row: TableItem) => {
-  const a = await fetchDeleteWebsite();
-  ElMessage.success('删除成功');
+  if (await fetchDeleteWebsite(row.id)) {
+    ElMessage.success('删除成功');
+    getData();
+  } else {
+    ElMessage.error('删除失败');
+  }
 }
 </script>
 

@@ -17,8 +17,8 @@
 					<el-switch v-else-if="item.type === 'switch'" v-model="form[item.prop]"
 						:active-value="item.activeValue" :inactive-value="item.inactiveValue"
 						:active-text="item.activeText" :inactive-text="item.inactiveText"></el-switch>
-					<el-upload v-else-if="item.type === 'upload'" class="avatar-uploader" action="#"
-						:show-file-list="false" :on-success="handleAvatarSuccess">
+					<el-upload v-else-if="item.type === 'upload'" class="avatar-uploader" action="http://localhost:1011/upload"
+						:show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeFileUpload">
 						<img v-if="form[item.prop]" :src="form[item.prop]" class="avatar" />
 						<el-icon v-else class="avatar-uploader-icon">
 							<Plus />
@@ -39,7 +39,7 @@
 
 <script lang="ts" setup>
 import { FormOption } from '@/types/form-option';
-import { FormInstance, FormRules, UploadProps } from 'element-plus';
+import {ElMessage, FormInstance, FormRules, UploadProps} from 'element-plus';
 import { PropType, ref } from 'vue';
 
 const { options, formData, edit, update } = defineProps({
@@ -76,14 +76,28 @@ const formRef = ref<FormInstance>();
 const saveEdit = (formEl: FormInstance | undefined) => {
 	if (!formEl) return;
 	formEl.validate(valid => {
-		if (!valid) return false;
+		if (!valid) console.log('error submit!');
 		update(form.value);
 	});
 };
 
 const handleAvatarSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
-	form.value.thumb = URL.createObjectURL(uploadFile.raw!);
+  // 处理上传成功后的逻辑
+  form.value.thumb = response.url || URL.createObjectURL(uploadFile.raw!);
+  form.value.id = response.id || uploadFile.raw!.name;
+  console.log("form.value"+form.value);
+  console.log("form.value.id"+form.value.id);
 };
+
+const beforeFileUpload = (file: File) => {
+  const isZipOrRar = file.name.endsWith('.zip');
+
+  if (!isZipOrRar) {
+    ElMessage.error('只能上传压缩文件 (ZIP格式)!');
+  }
+  return isZipOrRar;
+};
+
 
 </script>
 
